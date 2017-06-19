@@ -1,0 +1,60 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+  <!-- JQuery import -->
+  <script src="//code.jquery.com/jquery-1.11.2.min.js"></script>
+</head>
+
+<body>
+
+  <!-- Upload file form -->
+  <form id="upload-file-form">
+    <label for="upload-file-input">Upload your file:</label>
+    <input id="upload-file-input" type="file" name="uploadfile" accept="*" />
+    <br />
+    <span id="upload-file-message"></span>
+    <span id="uploaded-file"></span>
+  </form>
+  <br />
+  <hr />
+  
+  <!-- Javascript functions -->
+  <script>
+  
+    // bind the on-change event for the input element (triggered when a file
+    // is chosen)
+    $(document).ready(function() {
+      $("#upload-file-input").on("change", uploadFile);
+    });
+    
+    /**
+     * Upload the file sending it via Ajax at the Spring Boot server.
+     */
+    function uploadFile() {
+      $.ajax({
+        url: "/uploadFile",
+        type: "POST",
+        data: new FormData($("#upload-file-form")[0]),
+        enctype: 'multipart/form-data',
+        processData: false,
+        contentType: false,
+        cache: false,
+        success: function (data) {
+          // Handle upload success
+          console.log(data);
+          $("#upload-file-message").text("上传成功");
+          $("#uploaded-file").html("<a href='/files/" + data.filename + "'>" + data.filename +  "</a>");
+        },
+        error: function () {
+          // Handle upload error
+          $("#upload-file-message").text(
+              "上传失败");
+        }
+      });
+    } // function uploadFile
+  </script>
+  
+</body>
+
+</html>
