@@ -30,6 +30,7 @@ import org.apache.poi.xwpf.converter.core.XWPFConverterException;
 import org.apache.poi.xwpf.converter.xhtml.XHTMLConverter;
 import org.apache.poi.xwpf.converter.xhtml.XHTMLOptions;
 import org.apache.poi.xwpf.usermodel.XWPFDocument;
+import org.springframework.util.StringUtils;
 import org.w3c.dom.Document;
 
 /**
@@ -38,15 +39,32 @@ import org.w3c.dom.Document;
 public class WordToHtml {
 
 	public static void main(String[] args) throws IOException, TransformerException, ParserConfigurationException {
-		 word2007ToHtml("乐逗SDK_网游_Android客户端_接入指南_20170504.docx","D:\\");
+		wordToHtml("乐逗SDK_网游_Android客户端_接入指南_20170504.docx","D:\\");
 //		word2003ToHtml("乐逗SDK_网游_Android客户端_接入指南_20170504.doc", "D:\\");
 	}
 
-	public static String wordToHtml(String fullPathName, String outpath){
+	/**
+	 * 
+	 * @param fullPathName
+	 * @param outBasePath
+	 * @return
+	 */
+	public static String wordToHtml(String fullPathName, String outBasePath){
+		return wordToHtml(fullPathName, outBasePath, null);
+	}
+	
+	/**
+	 * 
+	 * @param fullPathName
+	 * @param outBasePath
+	 * @param subDir
+	 * @return
+	 */
+	public static String wordToHtml(String fullPathName, String outBasePath, String subDir){
 		if (fullPathName.toLowerCase().endsWith(".docx")) {
-			return word2007ToHtml(fullPathName, outpath);
+			return word2007ToHtml(fullPathName, outBasePath, subDir);
 		}else if(fullPathName.toLowerCase().endsWith(".doc")){
-			return word2003ToHtml(fullPathName, outpath);
+			return word2003ToHtml(fullPathName, outBasePath, subDir);
 		}
 		return null;
 	}
@@ -55,17 +73,21 @@ public class WordToHtml {
 	 * 2007版本word转换成html
 	 * 
 	 * @param fullPathName
-	 * @param outpath
+	 * @param outBasePath
 	 * @return
 	 */
-	public static String word2007ToHtml(String fullPathName, String outpath) {
+	public static String word2007ToHtml(String fullPathName, String outBasePath, String subDir) {
 		File f = new File(fullPathName);
 		String fileName = f.getName();
 		
 		int extIndex = fileName.lastIndexOf('.');
 		String prefix = fileName.substring(0, extIndex);
 		
-		outpath = outpath + "/" + prefix + "/";
+		if(StringUtils.isEmpty(subDir)){
+			outBasePath = outBasePath + "/" + prefix + "/";
+		}else{
+			outBasePath = outBasePath + "/" + subDir + "/";
+		}
 		String htmlName = prefix + ".html";
 		if (!f.exists()) {
 			System.out.println("Sorry File does not Exists!");
@@ -77,12 +99,12 @@ public class WordToHtml {
 			InputStream in = null;
 			OutputStream out = null;
 			try {
-				File outpathDir = new File(outpath);
+				File outpathDir = new File(outBasePath);
 				if (!outpathDir.exists()) {
 					outpathDir.mkdirs();
 				}
 				in = new FileInputStream(f);
-				File outFile = new File(outpath + htmlName);
+				File outFile = new File(outBasePath + htmlName);
 				out = new FileOutputStream(outFile);
 				XWPFDocument document = new XWPFDocument(in);
 
@@ -126,23 +148,24 @@ public class WordToHtml {
 	/**
 	 * 2003版本word转换成html
 	 * 
-	 * @throws IOException
-	 * @throws TransformerException
-	 * @throws ParserConfigurationException
 	 */
-	public static String word2003ToHtml(String fullPathName, String outpath) {
+	public static String word2003ToHtml(String fullPathName, String outBasePath, String subDir) {
 		File f = new File(fullPathName);
 		String fileName = f.getName();
 		final String imageBasepath = "word/media/";
 		int extIndex = fileName.lastIndexOf('.');
 		String prefix = fileName.substring(0, extIndex);
-		outpath = outpath + "/" + prefix;
-		String imagepath = outpath + "/" + imageBasepath;
+		if(StringUtils.isEmpty(subDir)){
+			outBasePath = outBasePath + "/" + prefix + "/";
+		}else{
+			outBasePath = outBasePath + "/" + subDir + "/";
+		}
+		String imagepath = outBasePath + imageBasepath;
 		String htmlName = prefix + ".html";
 		InputStream in = null;
 		OutputStream out = null;
 		try {
-			File outpathDir = new File(outpath);
+			File outpathDir = new File(outBasePath);
 			if (!outpathDir.exists()) {
 				outpathDir.mkdirs();
 			}
@@ -151,7 +174,7 @@ public class WordToHtml {
 				imgPath.mkdirs();
 			}
 			
-			File outFile = new File(outpath + "/" + htmlName);
+			File outFile = new File(outBasePath + htmlName);
 			in = new FileInputStream(f);
 			out = new FileOutputStream(outFile);
 			

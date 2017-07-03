@@ -8,6 +8,9 @@ import java.io.FileOutputStream;
 import java.io.UnsupportedEncodingException;
 import java.net.URLEncoder;
 import java.nio.file.Paths;
+import java.time.LocalDateTime;
+import java.time.LocalTime;
+import java.time.format.DateTimeFormatter;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -65,23 +68,28 @@ public class Word2HtmlController {
 		try {
 			// Get the filename and build the local file path
 			String filename = uploadfile.getOriginalFilename();
+			String fname = new File(filename).getName();
 			String directory = env.getProperty("paths.uploadedWordFiles");
 			File dirFile = new File(directory);
 			if (!dirFile.exists()) {
 				dirFile.mkdirs();
 			}
-			String filepath = Paths.get(directory, filename).toString();
+			String filepath = Paths.get(directory, fname).toString();
 
 			// Save the file locally
 			BufferedOutputStream stream = new BufferedOutputStream(new FileOutputStream(new File(filepath)));
 			stream.write(uploadfile.getBytes());
-			String htmlPath = WordToHtml.wordToHtml(filepath, directory);
+			stream.close();
+			String timeStr = DateTimeFormatter.ofPattern("yyyyMMddHHmmss").format(LocalDateTime.now());
+			int extIndex = fname.lastIndexOf('.');
+			String filePrefix = fname.substring(0, extIndex);
+			String htmlPath = WordToHtml.wordToHtml(filepath, directory, filePrefix + "_" + timeStr);
 			String htmlDir = new File(htmlPath).getParent();
 			String zipFile = ZipUtilities.compressDirectory(htmlDir, directory);
 			FileUtil.deleteDir(htmlDir);
+			FileUtil.deleteDir(filepath);
 			Map<String,String> rsMap = new HashMap<String,String>();
 			rsMap.put("filename", zipFile);
-			stream.close();
 			return new ResponseEntity<>(rsMap, HttpStatus.OK);
 		} catch (Exception e) {
 			System.out.println(e.getMessage());
